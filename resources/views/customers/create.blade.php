@@ -8,7 +8,7 @@
     <div class="card">
         <div class="card-body">
 
-            <form action="{{ route('customers.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('customers.store') }}" method="POST">
                 @csrf
 
                 <div class="form-group">
@@ -57,6 +57,45 @@
                     @enderror
                 </div>
 
+                {{-- New CNIC field --}}
+                <div class="form-group">
+                    <label for="cnic">CNIC</label>
+                    <input type="text" name="cnic" class="form-control @error('cnic') is-invalid @enderror"
+                           id="cnic"
+                           placeholder="CNIC (e.g., 12345-1234567-1)" value="{{ old('cnic') }}">
+                    @error('cnic')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                    @enderror
+                </div>
+
+                {{-- New NTN Number field --}}
+                <div class="form-group">
+                    <label for="ntn_number">NTN Number</label>
+                    <input type="text" name="ntn_number" class="form-control @error('ntn_number') is-invalid @enderror"
+                           id="ntn_number"
+                           placeholder="NTN Number" value="{{ old('ntn_number') }}">
+                    @error('ntn_number')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                    @enderror
+                </div>
+
+                {{-- New FBR Number field --}}
+                <div class="form-group">
+                    <label for="fbr_number">FBR Number</label>
+                    <input type="text" name="fbr_number" class="form-control @error('fbr_number') is-invalid @enderror"
+                           id="fbr_number"
+                           placeholder="FBR Number" value="{{ old('fbr_number') }}">
+                    @error('fbr_number')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                    @enderror
+                </div>
+
                 <div class="form-group">
                     <label for="address">Address</label>
                     <input type="text" name="address" class="form-control @error('address') is-invalid @enderror"
@@ -69,31 +108,8 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
-                    <label for="avatar">Avatar</label>
-                    <div class="custom-file">
-                        <input type="file" class="custom-file-input" name="avatar" id="avatar">
-                        <label class="custom-file-label" for="avatar">Choose File</label>
-                    </div>
-                    @error('avatar')
-                    <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
-                </span>
-                    @enderror
-                </div>
-
-
                 <button class="btn btn-success btn-block btn-lg" type="submit">Submit</button>
             </form>
         </div>
     </div>
-@endsection
-
-@section('js')
-    <script src="{{ asset('plugins/bs-custom-file-input/bs-custom-file-input.min.js') }}"></script>
-    <script>
-        $(document).ready(function () {
-            bsCustomFileInput.init();
-        });
-    </script>
 @endsection

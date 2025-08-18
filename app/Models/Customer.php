@@ -13,8 +13,10 @@ class Customer extends Model
         'email',
         'phone',
         'address',
-        'avatar',
         'user_id',
+        'cnic',
+        'ntn_number',
+        'fbr_number',
     ];
 
     public function getAvatarUrl()

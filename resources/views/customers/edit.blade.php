@@ -70,6 +70,43 @@
                     @enderror
                 </div>
 
+                {{-- New Fields --}}
+                <div class="form-group">
+                    <label for="cnic">CNIC</label>
+                    <input type="text" name="cnic" class="form-control @error('cnic') is-invalid @enderror"
+                           id="cnic"
+                           placeholder="Enter CNIC" value="{{ old('cnic', $customer->cnic) }}">
+                    @error('cnic')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="ntn_number">NTN Number</label>
+                    <input type="text" name="ntn_number" class="form-control @error('ntn_number') is-invalid @enderror"
+                           id="ntn_number"
+                           placeholder="Enter NTN Number" value="{{ old('ntn_number', $customer->ntn_number) }}">
+                    @error('ntn_number')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="fbr_number">FBR Number</label>
+                    <input type="text" name="fbr_number" class="form-control @error('fbr_number') is-invalid @enderror"
+                           id="fbr_number"
+                           placeholder="Enter FBR Number" value="{{ old('fbr_number', $customer->fbr_number) }}">
+                    @error('fbr_number')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                    @enderror
+                </div>
+
                 <div class="form-group">
                     <label for="avatar">Avatar</label>
                     <div class="custom-file">
@@ -82,7 +119,6 @@
                 </span>
                     @enderror
                 </div>
-
 
                 <button class="btn btn-success btn-block btn-lg" type="submit">Save Changes</button>
             </form>
