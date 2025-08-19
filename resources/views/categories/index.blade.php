@@ -3,10 +3,10 @@
 @section('title', 'Category Management')
 @section('content-header', 'Category Management')
 @section('content-actions')
-    <button type="button" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700" data-bs-toggle="modal" data-bs-target="#addMainModal">
+    <button type="button" class="inline-flex items-center px-2 py-1 bg-green-600 text-white rounded-md hover:bg-green-700" data-bs-toggle="modal" data-bs-target="#addMainModal">
         <i class="fas fa-plus mr-2"></i> Add Main
     </button>
-    <button type="button" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 ml-2" data-bs-toggle="modal" data-bs-target="#addSubModal">
+    <button type="button" class="inline-flex items-center px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 ml-2" data-bs-toggle="modal" data-bs-target="#addSubModal">
         <i class="fas fa-plus mr-2"></i> Add Sub
     </button>
 @endsection
@@ -38,16 +38,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            @if (session('success'))
-                <div class="alert alert-success bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4">
-                    {{ session('success') }}
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
-                    {{ session('error') }}
-                </div>
-            @endif
+
 
             <div class="overflow-x-auto">
                 <table id="categoriesTable" class="display w-full">
