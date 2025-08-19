@@ -27,7 +27,7 @@
                         <th>Contact</th>
                         <th>CNIC</th>
                         <th>NTN Number</th>
-                        <th>FBR Number</th>
+                        <th>STN</th>
                         <th>Address</th>
                         <th>Actions</th>
                     </tr>

@@ -85,7 +85,7 @@
 
                 {{-- New FBR Number field --}}
                 <div class="form-group">
-                    <label for="fbr_number">FBR Number</label>
+                    <label for="fbr_number">STN</label>
                     <input type="text" name="fbr_number" class="form-control @error('fbr_number') is-invalid @enderror"
                            id="fbr_number"
                            placeholder="FBR Number" value="{{ old('fbr_number') }}">
