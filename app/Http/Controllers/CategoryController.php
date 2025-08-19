@@ -12,7 +12,9 @@ class CategoryController extends Controller
     {
         // Fetch only parent categories (where parent_id is null) with their children, ordered by created_at desc
         $categories = Category::with('children')->whereNull('parent_id')->orderBy('created_at', 'desc')->get();
-        return view('categories.index', compact('categories'));
+        // Fetch active main categories with subcategories for the Add Sub and Edit modals
+        $mainCategories = Category::where('status', 1)->whereNull('parent_id')->get();
+        return view('categories.index', compact('categories', 'mainCategories'));
     }
 
     public function create()
@@ -39,14 +41,6 @@ class CategoryController extends Controller
         Category::create($request->only(['code', 'name', 'parent_id', 'description', 'status']));
 
         return redirect()->route('categories.index')->with('success', 'Category created successfully.');
-    }
-
-    public function edit($id)
-    {
-        $category = Category::findOrFail($id);
-        // Fetch only active main categories (parent_id is null) with subcategories, excluding the current category
-        $categories = Category::where('status', 1)->whereNull('parent_id')->where('id', '!=', $id)->get();
-        return view('categories.edit', compact('category', 'categories'));
     }
 
     public function update(Request $request, $id)
