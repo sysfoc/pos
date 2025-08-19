@@ -12,7 +12,20 @@ class Product extends Model
         'image',
         'barcode',
         'price',
+        'cost',
+        'tax_percentage',
+        'tax_type',
+        'threshold',
+        'unit',
+        'discount_percentage',
+        'sku',
+        'category_id',
         'quantity',
-        'status'
+        'status',
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
 }

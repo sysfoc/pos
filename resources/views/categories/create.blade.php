@@ -28,7 +28,7 @@
                 @csrf
                 <div class="mb-3">
                     <label for="code" class="form-label">Code</label>
-                    <input type="text" name="code" id="code" class="form-control" value="{{ old('code') }}" required>
+                    <input type="text" name="code" id="code" class="form-control" value="{{ old('code') }}">
                 </div>
                 <div class="mb-3">
                     <label for="name" class="form-label">Name</label>
@@ -38,6 +38,7 @@
                     <label for="parent_id" class="form-label">Parent Category</label>
                     <select name="parent_id" id="parent_id" class="form-control">
                         <option value="">None</option>
+                        <!-- Only main categories (parent_id is null) with subcategories are listed -->
                         @foreach ($categories as $category)
                             <option value="{{ $category->id }}" {{ old('parent_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                         @endforeach

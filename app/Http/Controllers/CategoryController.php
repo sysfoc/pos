@@ -10,20 +10,22 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::with('parent')->paginate(10); // Paginate with 10 items per page
+        // Fetch only parent categories (where parent_id is null) with their children, ordered by created_at desc
+        $categories = Category::with('children')->whereNull('parent_id')->orderBy('created_at', 'desc')->get();
         return view('categories.index', compact('categories'));
     }
 
     public function create()
     {
-        $categories = Category::where('status', 1)->get(); // Only active categories as parents
+        // Fetch only active main categories (parent_id is null) that have subcategories
+        $categories = Category::where('status', 1)->whereNull('parent_id')->get();
         return view('categories.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'code' => 'required|string|max:50|unique:categories,code',
+            'code' => 'nullable|string|max:50|unique:categories,code',
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
@@ -42,14 +44,15 @@ class CategoryController extends Controller
     public function edit($id)
     {
         $category = Category::findOrFail($id);
-        $categories = Category::where('status', 1)->where('id', '!=', $id)->get(); // Exclude self as parent
+        // Fetch only active main categories (parent_id is null) with subcategories, excluding the current category
+        $categories = Category::where('status', 1)->whereNull('parent_id')->where('id', '!=', $id)->get();
         return view('categories.edit', compact('category', 'categories'));
     }
 
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'code' => 'required|string|max:50|unique:categories,code,' . $id,
+            'code' => 'nullable|string|max:50|unique:categories,code,' . $id,
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
@@ -69,11 +72,14 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
-        // Check if category has children before deleting
+        // Check if category has children or products before deleting
         if ($category->children()->exists()) {
-            return response()->json(['error' => 'Cannot delete category with subcategories.'], 400);
+            return redirect()->route('categories.index')->with('error', 'Cannot delete category with subcategories.');
+        }
+        if ($category->products()->exists()) {
+            return redirect()->route('categories.index')->with('error', 'Cannot delete category with associated products.');
         }
         $category->delete();
-        return response()->json(['success' => 'Category deleted successfully.']);
+        return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
     }
 }

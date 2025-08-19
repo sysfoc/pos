@@ -29,7 +29,7 @@
                 @method('PUT')
                 <div class="mb-3">
                     <label for="code" class="form-label">Code</label>
-                    <input type="text" name="code" id="code" class="form-control" value="{{ old('code', $category->code) }}" required>
+                    <input type="text" name="code" id="code" class="form-control" value="{{ old('code', $category->code) }}">
                 </div>
                 <div class="mb-3">
                     <label for="name" class="form-label">Name</label>
@@ -39,6 +39,7 @@
                     <label for="parent_id" class="form-label">Parent Category</label>
                     <select name="parent_id" id="parent_id" class="form-control">
                         <option value="">None</option>
+                        <!-- Only main categories (parent_id is null) with subcategories are listed, excluding the current category -->
                         @foreach ($categories as $cat)
                             <option value="{{ $cat->id }}" {{ old('parent_id', $category->parent_id) == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                         @endforeach
