@@ -47,6 +47,12 @@
                     </a>
                 </li>
                 <li class="nav-item has-treeview">
+                    <a href="{{ route('units.index') }}" class="nav-link {{ activeSegment('units') }}">
+                        <i class="nav-icon fas fa-weight"></i>
+                        <p>Manage Units</p>
+                    </a>
+                </li>
+                <li class="nav-item has-treeview">
                     <a href="{{ route('cart.index') }}" class="nav-link {{ activeSegment('cart') }}">
                         <i class="nav-icon fas fa-cash-register"></i>
                         <p>POS System</p>

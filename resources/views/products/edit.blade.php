@@ -3,205 +3,322 @@
 @section('title', 'Edit Product')
 @section('content-header', 'Edit Product')
 @section('content-actions')
-    <a href="{{ route('products.index') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Products</a>
+    <a href="{{ route('products.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Products
+    </a>
 @endsection
 @section('css')
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        .form-label, .form-control, .btn, .custom-file-label {
-            font-size: 0.9rem;
+        .form-label {
+            @apply text-sm font-medium text-gray-700;
+        }
+        .form-control {
+            @apply w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition;
+        }
+        .error-border {
+            @apply border-red-500;
+        }
+        .error-text {
+            @apply text-red-600 text-sm mt-1 flex items-center;
+        }
+        .section-title {
+
+            font-weight: 700!important;
+
         }
     </style>
 @endsection
 @section('content')
-    <div class="card">
-        <div class="card-body">
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-            <form action="{{ route('products.update', $product) }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                @method('PUT')
-                <div class="form-group">
-                    <label for="name" class="form-label">Name</label>
-                    <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" id="name"
-                           placeholder="Enter product name" value="{{ old('name', $product->name) }}" required>
-                    @error('name')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="description" class="form-label">Description</label>
-                    <textarea name="description" class="form-control @error('description') is-invalid @enderror"
-                              id="description" placeholder="Enter short description">{{ old('description', $product->description) }}</textarea>
-                    @error('description')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="image" class="form-label">Product Image</label>
-                    <div class="custom-file">
-                        <input type="file" class="custom-file-input @error('image') is-invalid @enderror" name="image" id="image">
-                        <label class="custom-file-label" for="image">{{ $product->image ? basename($product->image) : 'Choose File' }}</label>
+    <div class="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg">
+        @if ($errors->any())
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg">
+                <ul class="list-disc pl-5">
+                    @foreach ($errors->all() as $error)
+                        <li class="flex items-center"><i class="fas fa-exclamation-circle mr-2"></i> {{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+        <form action="{{ route('products.update', $product) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+
+            <!-- Basic Information -->
+            <div class="bg-blue-50 p-6 mb-6 rounded-lg border border-blue-200">
+                <h2 class="section-title text-lg pb-4"><i class="fas fa-info-circle mr-2 text-blue-600"></i> Basic Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" name="name" class="form-control @error('name') error-border @enderror" id="name"
+                               placeholder="Enter product name" value="{{ old('name', $product->name) }}" required>
+                        @error('name')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
                     </div>
-                    @if ($product->image)
-                        <small class="form-text text-muted">Current image: <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" style="width: 50px; height: 50px; object-fit: cover;"></small>
-                    @endif
-                    @error('image')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
+                     <div class="mb-4">
+                        <label for="image" class="form-label">Product Image</label>
+                        <input type="file" class="form-control @error('image') error-border @enderror" name="image" id="image">
+                        @if ($product->image)
+                            <small class="text-gray-600 text-sm mt-1">Current image: <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" class="w-12 h-12 object-cover mt-1"></small>
+                        @endif
+                        @error('image')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea name="description" class="form-control @error('description') error-border @enderror"
+                                  id="description" placeholder="Enter short description" rows="4">{{ old('description', $product->description) }}</textarea>
+                        @error('description')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+
                 </div>
-                <div class="form-group">
-                    <label for="barcode" class="form-label">Barcode</label>
-                    <input type="text" name="barcode" class="form-control @error('barcode') is-invalid @enderror"
-                           id="barcode" placeholder="Enter barcode number" value="{{ old('barcode', $product->barcode) }}" required>
-                    @error('barcode')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
+            </div>
+
+            <!-- Pricing Details -->
+            <div class="bg-green-50 p-6 mb-6 rounded-lg border border-green-200">
+                <h2 class="section-title text-lg pb-4"><i class="fas fa-dollar-sign mr-2 text-green-600"></i> Pricing Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label for="price" class="form-label">Price</label>
+                        <input type="number" name="price" class="form-control @error('price') error-border @enderror" id="price"
+                               placeholder="Enter price" value="{{ old('price', $product->price) }}" required step="0.01">
+                        @error('price')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="cost" class="form-label">Cost</label>
+                        <input type="number" name="cost" class="form-control @error('cost') error-border @enderror" id="cost"
+                               placeholder="Enter cost" value="{{ old('cost', $product->cost) }}" required step="0.01">
+                        @error('cost')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="tax_percentage" class="form-label">Tax Percentage</label>
+                        <input type="number" name="tax_percentage" class="form-control @error('tax_percentage') error-border @enderror" id="tax_percentage"
+                               placeholder="Enter tax percentage" value="{{ old('tax_percentage', $product->tax_percentage) }}" step="0.01">
+                        @error('tax_percentage')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="tax_type" class="form-label">Tax Type</label>
+                        <select name="tax_type" class="form-control @error('tax_type') error-border @enderror" id="tax_type">
+                            <option value="" {{ old('tax_type', $product->tax_type) == '' ? 'selected' : '' }}>Select Tax Type</option>
+                            <option value="inclusive" {{ old('tax_type', $product->tax_type) == 'inclusive' ? 'selected' : '' }}>Inclusive</option>
+                            <option value="exclusive" {{ old('tax_type', $product->tax_type) == 'exclusive' ? 'selected' : '' }}>Exclusive</option>
+                        </select>
+                        @error('tax_type')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="discount_percentage" class="form-label">Discount Percentage</label>
+                        <input type="number" name="discount_percentage" class="form-control @error('discount_percentage') error-border @enderror" id="discount_percentage"
+                               placeholder="Enter discount percentage" value="{{ old('discount_percentage', $product->discount_percentage) }}" step="0.01">
+                        @error('discount_percentage')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="price" class="form-label">Price</label>
-                    <input type="number" name="price" class="form-control @error('price') is-invalid @enderror" id="price"
-                           placeholder="Enter price" value="{{ old('price', $product->price) }}" required step="0.01">
-                    @error('price')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
+            </div>
+
+            <!-- Category Information -->
+            <div class="bg-purple-50 p-6 mb-6 rounded-lg border border-purple-200">
+                <h2 class="section-title text-lg pb-4"><i class="fas fa-tags mr-2 text-purple-600"></i> Category Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label for="parent_category_id" class="form-label">Parent Category</label>
+                        <select name="parent_category_id" class="form-control @error('category_id') error-border @enderror" id="parent_category_id">
+                            <option value="">Select Parent Category</option>
+                            @foreach ($categories->where('parent_id', null) as $category)
+                                <option value="{{ $category->id }}" {{ old('parent_category_id', $product->category ? $product->category->parent_id : null) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('category_id')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="category_id" class="form-label">Subcategory</label>
+                        <select name="category_id" class="form-control @error('category_id') error-border @enderror" id="category_id">
+                            <option value="">Select Subcategory</option>
+                            @if ($product->category && $product->category->parent_id)
+                                @foreach ($categories->where('parent_id', $product->category->parent_id) as $subcategory)
+                                    <option value="{{ $subcategory->id }}" {{ old('category_id', $product->category_id) == $subcategory->id ? 'selected' : '' }}>{{ $subcategory->name }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                        @error('category_id')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="cost" class="form-label">Cost</label>
-                    <input type="number" name="cost" class="form-control @error('cost') is-invalid @enderror" id="cost"
-                           placeholder="Enter cost" value="{{ old('cost', $product->cost) }}" required step="0.01">
-                    @error('cost')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
+            </div>
+
+            <!-- Inventory Details -->
+            <div class="bg-yellow-50 p-6 mb-6 rounded-lg border border-yellow-200">
+                <h2 class="section-title text-lg pb-4"><i class="fas fa-box-open mr-2 text-yellow-600"></i> Inventory Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input type="number" name="quantity" class="form-control @error('quantity') error-border @enderror" id="quantity"
+                               placeholder="Enter quantity" value="{{ old('quantity', $product->quantity) }}" required>
+                        @error('quantity')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="threshold" class="form-label">Threshold</label>
+                        <input type="number" name="threshold" class="form-control @error('threshold') error-border @enderror" id="threshold"
+                               placeholder="Enter stock threshold" value="{{ old('threshold', $product->threshold) }}">
+                        @error('threshold')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="unit_id" class="form-label">Unit</label>
+                        <select name="unit_id" class="form-control @error('unit_id') error-border @enderror" id="unit_id">
+                            <option value="">Select Unit</option>
+                            @foreach ($units as $unit)
+                                <option value="{{ $unit->id }}" {{ old('unit_id', $product->unit_id) == $unit->id ? 'selected' : '' }}>
+                                    {{ $unit->unit_name }} ({{ $unit->short_name }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('unit_id')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="tax_percentage" class="form-label">Tax Percentage</label>
-                    <input type="number" name="tax_percentage" class="form-control @error('tax_percentage') is-invalid @enderror" id="tax_percentage"
-                           placeholder="Enter tax percentage" value="{{ old('tax_percentage', $product->tax_percentage) }}" step="0.01">
-                    @error('tax_percentage')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
+            </div>
+
+            <!-- Additional Details -->
+            <div class="bg-indigo-50 p-6 mb-6 rounded-lg border border-indigo-200">
+                <h2 class="section-title text-lg pb-4"><i class="fas fa-list-alt mr-2 text-indigo-600"></i> Additional Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label for="barcode" class="form-label">Barcode</label>
+                        <input type="text" name="barcode" class="form-control @error('barcode') error-border @enderror"
+                               id="barcode" placeholder="Enter barcode number" value="{{ old('barcode', $product->barcode) }}" required>
+                        @error('barcode')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="sku" class="form-label">SKU</label>
+                        <input type="text" name="sku" class="form-control @error('sku') error-border @enderror" id="sku"
+                               placeholder="Enter SKU" value="{{ old('sku', $product->sku) }}">
+                        @error('sku')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="selling_type" class="form-label">Selling Type</label>
+                        <select name="selling_type" class="form-control @error('selling_type') error-border @enderror" id="selling_type">
+                            <option value="" {{ old('selling_type', $product->selling_type) == '' ? 'selected' : '' }}>Select Selling Type</option>
+                            <option value="online" {{ old('selling_type', $product->selling_type) == 'online' ? 'selected' : '' }}>Online</option>
+                            <option value="pos" {{ old('selling_type', $product->selling_type) == 'pos' ? 'selected' : '' }}>POS</option>
+                        </select>
+                        @error('selling_type')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="brand_name" class="form-label">Brand Name</label>
+                        <input type="text" name="brand_name" class="form-control @error('brand_name') error-border @enderror" id="brand_name"
+                               placeholder="Enter brand name" value="{{ old('brand_name', $product->brand_name) }}">
+                        @error('brand_name')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="manufactured_date" class="form-label">Manufactured Date</label>
+                        <input type="date" name="manufactured_date" class="form-control @error('manufactured_date') error-border @enderror" id="manufactured_date"
+                               value="{{ old('manufactured_date', $product->manufactured_date) }}">
+                        @error('manufactured_date')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="expire_date" class="form-label">Expire Date</label>
+                        <input type="date" name="expire_date" class="form-control @error('expire_date') error-border @enderror" id="expire_date"
+                               value="{{ old('expire_date', $product->expire_date) }}">
+                        @error('expire_date')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="tax_type" class="form-label">Tax Type</label>
-                    <select name="tax_type" class="form-control @error('tax_type') is-invalid @enderror" id="tax_type">
-                        <option value="" {{ old('tax_type', $product->tax_type) == '' ? 'selected' : '' }}>Select Tax Type</option>
-                        <option value="inclusive" {{ old('tax_type', $product->tax_type) == 'inclusive' ? 'selected' : '' }}>Inclusive</option>
-                        <option value="exclusive" {{ old('tax_type', $product->tax_type) == 'exclusive' ? 'selected' : '' }}>Exclusive</option>
-                    </select>
-                    @error('tax_type')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="threshold" class="form-label">Threshold</label>
-                    <input type="number" name="threshold" class="form-control @error('threshold') is-invalid @enderror" id="threshold"
-                           placeholder="Enter stock threshold" value="{{ old('threshold', $product->threshold) }}">
-                    @error('threshold')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="unit" class="form-label">Unit</label>
-                    <input type="text" name="unit" class="form-control @error('unit') is-invalid @enderror" id="unit"
-                           placeholder="Enter unit (e.g., kg, piece)" value="{{ old('unit', $product->unit) }}">
-                    @error('unit')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="discount_percentage" class="form-label">Discount Percentage</label>
-                    <input type="number" name="discount_percentage" class="form-control @error('discount_percentage') is-invalid @enderror" id="discount_percentage"
-                           placeholder="Enter discount percentage" value="{{ old('discount_percentage', $product->discount_percentage) }}" step="0.01">
-                    @error('discount_percentage')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="sku" class="form-label">SKU</label>
-                    <input type="text" name="sku" class="form-control @error('sku') is-invalid @enderror" id="sku"
-                           placeholder="Enter SKU" value="{{ old('sku', $product->sku) }}">
-                    @error('sku')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="category_id" class="form-label">Category</label>
-                    <select name="category_id" class="form-control @error('category_id') is-invalid @enderror" id="category_id">
-                        <option value="">None</option>
-                        @foreach ($categories as $category)
-                            <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('category_id')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="quantity" class="form-label">Quantity</label>
-                    <input type="number" name="quantity" class="form-control @error('quantity') is-invalid @enderror" id="quantity"
-                           placeholder="Enter quantity" value="{{ old('quantity', $product->quantity) }}" required>
-                    @error('quantity')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-                <div class="form-group">
+            </div>
+
+            <!-- Status -->
+            <div class="bg-gray-50 p-6 mb-6 rounded-lg border border-gray-200">
+                <h2 class="section-title"><i class="fas fa-toggle-on mr-2 text-gray-600"></i> Status</h2>
+                <div class="mb-4">
                     <label for="status" class="form-label">Status</label>
-                    <select name="status" class="form-control @error('status') is-invalid @enderror" id="status">
+                    <select name="status" class="form-control @error('status') error-border @enderror" id="status">
                         <option value="1" {{ old('status', $product->status) == 1 ? 'selected' : '' }}>Active</option>
                         <option value="0" {{ old('status', $product->status) == 0 ? 'selected' : '' }}>Inactive</option>
                     </select>
                     @error('status')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
+                        <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
                     @enderror
                 </div>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
-                <a href="{{ route('products.index') }}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
-            </form>
-        </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end space-x-4">
+                <button type="submit" class="btn bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 transition">
+                    <i class="fas fa-save mr-2"></i> Save
+                </button>
+                <a href="{{ route('products.index') }}" class="btn bg-gray-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-gray-600 transition">
+                    <i class="fas fa-times mr-2"></i> Cancel
+                </a>
+            </div>
+        </form>
     </div>
 @endsection
 @section('js')
-    <script src="{{ asset('plugins/bs-custom-file-input/bs-custom-file-input.min.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-            bsCustomFileInput.init();
+            // Preload categories from controller
+            const categories = @json($categoryData);
+
+            // Populate subcategories when parent category changes
+            $('#parent_category_id').on('change', function () {
+                const parentId = $(this).val();
+                const subcategorySelect = $('#category_id');
+                subcategorySelect.empty().append('<option value="">Select Subcategory</option>');
+
+                // Filter subcategories (categories with matching parent_id and no children)
+                const subcategories = categories.filter(category =>
+                    category.parent_id == parentId && !category.has_children
+                );
+
+                // Add subcategories to dropdown
+                subcategories.forEach(category => {
+                    subcategorySelect.append(
+                        `<option value="${category.id}">${category.name}</option>`
+                    );
+                });
+
+                // If editing, select the current subcategory
+                const currentCategoryId = '{{ old('category_id', $product->category_id) }}';
+                if (currentCategoryId) {
+                    subcategorySelect.val(currentCategoryId);
+                }
+            });
+
+            // Trigger change on page load to populate subcategories
+            @if (old('parent_category_id', $product->category ? $product->category->parent_id : null))
+                $('#parent_category_id').trigger('change');
+            @endif
         });
     </script>
 @endsection
