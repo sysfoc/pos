@@ -58,7 +58,7 @@
                             <td class="px-2 py-2 text-xs">{{ $product->discount_percentage ? number_format($product->discount_percentage, 2) . '%' : 'N/A' }}</td>
                             <td class="px-2 py-2 text-xs">{{ config('settings.currency_symbol') }}{{ number_format($product->price, 2) }}</td>
                             <td class="px-2 py-2 text-xs">
-                                <span class="text-sm font-medium {{ $product->status ? 'text-green-600' : 'text-red-600' }}">{{ $product->status ? 'Active' : 'Inactive' }}</span>
+                                <span class="text-xs font-medium {{ $product->status ? 'text-green-600' : 'text-red-600' }}">{{ $product->status ? 'Active' : 'Inactive' }}</span>
                             </td>
                             <td class="px-2 py-1">
                                 <a href="{{ route('products.edit', $product) }}" class="btn btn-xs bg-blue-600 text-white text-xs px-2 py-1 rounded hover:bg-blue-700">
