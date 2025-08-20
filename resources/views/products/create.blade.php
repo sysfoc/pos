@@ -194,7 +194,7 @@
                     <div class="mb-4">
                         <label for="barcode" class="form-label">Barcode</label>
                         <input type="text" name="barcode" class="form-control @error('barcode') error-border @enderror"
-                               id="barcode" placeholder="Enter barcode number" value="{{ old('barcode') }}" required>
+                               id="barcode" placeholder="Enter barcode number" value="{{ old('barcode') }}" >
                         @error('barcode')
                             <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
                         @enderror
