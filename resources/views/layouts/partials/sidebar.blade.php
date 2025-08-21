@@ -52,6 +52,12 @@
                         <p>Manage Units</p>
                     </a>
                 </li>
+                 <li class="nav-item has-treeview">
+                    <a href="{{ route('variants.index') }}" class="nav-link {{ activeSegment('variants') }}">
+                        <i class="nav-icon fas fa-ruler-combined"></i>
+                        <p>Manage Variants</p>
+                    </a>
+                </li>
                 <li class="nav-item has-treeview">
                     <a href="{{ route('cart.index') }}" class="nav-link {{ activeSegment('cart') }}">
                         <i class="nav-icon fas fa-cash-register"></i>

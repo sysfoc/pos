@@ -38,8 +38,6 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-
-
             <div class="overflow-x-auto">
                 <table id="categoriesTable" class="display w-full">
                     <thead>
@@ -59,9 +57,7 @@
                                 <td>{{ $category->code }}</td>
                                 <td>{{ $category->name }}</td>
                                 <td>{{ $category->parent ? $category->parent->name : 'None' }}</td>
-                                <td title="{{ $category->description ?? 'N/A' }}">
-                                    {{ \Illuminate\Support\Str::limit($category->description ?? 'N/A', 20, '...') }}
-                                </td>
+                                <td>N/A</td>
                                 <td>{{ $category->status ? 'Active' : 'Inactive' }}</td>
                                 <td>
                                     <button type="button" class="btn btn-sm btn-primary btn-edit"
@@ -70,7 +66,6 @@
                                             data-id="{{ $category->id }}"
                                             data-code="{{ $category->code ?? '' }}"
                                             data-name="{{ $category->name }}"
-                                            data-description="{{ $category->description ?? '' }}"
                                             data-status="{{ $category->status }}"
                                             data-is-main="true">Edit</button>
                                     @if (!$category->children()->exists() && !$category->products()->exists())
@@ -140,10 +135,6 @@
                                     <div id="main_name_error" class="text-danger mt-1" style="display: none;"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="main_description" class="form-label">Description</label>
-                                    <textarea name="description" id="main_description" class="form-control">{{ old('description') }}</textarea>
-                                </div>
-                                <div class="mb-3">
                                     <label for="main_status" class="form-label">Status</label>
                                     <select name="status" id="main_status" class="form-control">
                                         <option value="1" {{ old('status', 1) == 1 ? 'selected' : '' }}>Active</option>
@@ -194,6 +185,7 @@
                                 <div class="mb-3">
                                     <label for="sub_description" class="form-label">Description</label>
                                     <textarea name="description" id="sub_description" class="form-control">{{ old('description') }}</textarea>
+                                    <div id="sub_description_error" class="text-danger mt-1" style="display: none;"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="sub_status" class="form-label">Status</label>
@@ -245,9 +237,10 @@
                                     </select>
                                     <div id="edit_parent_id_error" class="text-danger mt-1" style="display: none;"></div>
                                 </div>
-                                <div class="mb-3">
+                                <div class="mb-3" id="edit_description_container" style="display: none;">
                                     <label for="edit_description" class="form-label">Description</label>
-                                    <textarea name="description" id="edit_description" class="form-control"></textarea>
+                                    <textarea name="description" id="edit_description" class="form-control" required></textarea>
+                                    <div id="edit_description_error" class="text-danger mt-1" style="display: none;"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="edit_status" class="form-label">Status</label>
@@ -303,7 +296,29 @@
                     confirmButtonText: 'Yes, delete it!'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        form.submit();
+                        $.ajax({
+                            url: form.attr('action'),
+                            method: 'POST',
+                            data: form.serialize(),
+                            success: function (response) {
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: response.message,
+                                    icon: 'success',
+                                    confirmButtonColor: '#3085d6'
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            },
+                            error: function (xhr) {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: xhr.responseJSON.message || 'An error occurred while deleting the category.',
+                                    icon: 'error',
+                                    confirmButtonColor: '#d33'
+                                });
+                            }
+                        });
                     }
                 });
             });
@@ -315,7 +330,7 @@
                 const formId = form.attr('id');
                 const errorFields = formId === 'addMainForm' ?
                     ['main_code', 'main_name'] :
-                    ['sub_code', 'sub_name', 'sub_parent_id'];
+                    ['sub_code', 'sub_name', 'sub_parent_id', 'sub_description'];
 
                 // Clear previous error messages
                 errorFields.forEach(field => {
@@ -329,7 +344,7 @@
                     success: function (response) {
                         Swal.fire({
                             title: 'Success!',
-                            text: 'Category created successfully.',
+                            text: response.message,
                             icon: 'success',
                             confirmButtonColor: '#3085d6'
                         }).then(() => {
@@ -371,16 +386,19 @@
                 $('#edit_id').val(id);
                 $('#edit_code').val(code);
                 $('#edit_name').val(name);
-                $('#edit_description').val(description);
                 $('#edit_status').val(status);
 
-                // Show/hide parent_id field based on whether it's a main category
+                // Show/hide parent_id and description fields based on whether it's a main category
                 if (isMain) {
                     $('#edit_parent_id_container').hide();
                     $('#edit_parent_id').val('');
+                    $('#edit_description_container').hide();
+                    $('#edit_description').val('').prop('required', false);
                 } else {
                     $('#edit_parent_id_container').show();
                     $('#edit_parent_id').val(parentId || '');
+                    $('#edit_description_container').show();
+                    $('#edit_description').val(description || '').prop('required', true);
                 }
 
                 // Dynamically set form action
@@ -391,7 +409,7 @@
             $('#editCategoryForm').on('submit', function (e) {
                 e.preventDefault();
                 const form = $(this);
-                const errorFields = ['edit_code', 'edit_name', 'edit_parent_id'];
+                const errorFields = ['edit_code', 'edit_name', 'edit_parent_id', 'edit_description'];
 
                 // Clear previous error messages
                 errorFields.forEach(field => {
@@ -405,7 +423,7 @@
                     success: function (response) {
                         Swal.fire({
                             title: 'Success!',
-                            text: 'Category updated successfully.',
+                            text: response.message,
                             icon: 'success',
                             confirmButtonColor: '#3085d6'
                         }).then(() => {

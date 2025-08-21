@@ -23,9 +23,8 @@
             @apply text-red-600 text-sm mt-1 flex items-center;
         }
         .section-title {
-
-            font-weight: 700!important;
-
+            font-weight: 700 !important;
+            font-size: 1.125rem !important;
         }
     </style>
 @endsection
@@ -56,7 +55,7 @@
                             <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
                         @enderror
                     </div>
-                     <div class="mb-4">
+                    <div class="mb-4">
                         <label for="image" class="form-label">Product Image</label>
                         <input type="file" class="form-control @error('image') error-border @enderror" name="image" id="image">
                         @if ($product->image)
@@ -74,7 +73,6 @@
                             <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
                         @enderror
                     </div>
-
                 </div>
             </div>
 
@@ -176,7 +174,7 @@
                     <div class="mb-4">
                         <label for="threshold" class="form-label">Threshold</label>
                         <input type="number" name="threshold" class="form-control @error('threshold') error-border @enderror" id="threshold"
-                               placeholder="Enter stock threshold" value="{{ old('threshold', $product->threshold) }}">
+                               placeholder="Enter stock threshold" value="{{ old('threshold', $product->quantity) }}">
                         @error('threshold')
                             <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
                         @enderror
@@ -198,6 +196,39 @@
                 </div>
             </div>
 
+            <!-- Add Variants -->
+            <div class="bg-teal-50 p-6 mb-6 rounded-lg border border-teal-200">
+                <h2 class="section-title text-lg pb-4"><i class="fas fa-tags mr-2 text-teal-600"></i> Add Variants</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label for="variant_id" class="form-label">Select Variant</label>
+                        <select name="variant_id" class="form-control @error('variant_id') error-border @enderror" id="variant_id">
+                            <option value="">Select Variant</option>
+                            @foreach ($variants as $variant)
+                                <option value="{{ $variant->id }}" {{ old('variant_id', $product->variantValues->first() ? $product->variantValues->first()->pivot->variant_id : null) == $variant->id ? 'selected' : '' }}>{{ $variant->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('variant_id')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label for="variant_value_id" class="form-label">Variant Values</label>
+                        <select name="variant_value_id" class="form-control @error('variant_value_id') error-border @enderror" id="variant_value_id" disabled>
+                            <option value="">Select Variant Value</option>
+                            @if ($product->variantValues->isNotEmpty() && $product->variantValues->first()->pivot->variant_id)
+                                @foreach ($variants->find($product->variantValues->first()->pivot->variant_id)->values as $value)
+                                    <option value="{{ $value->id }}" {{ old('variant_value_id', $product->variantValues->first()->id) == $value->id ? 'selected' : '' }}>{{ $value->value }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                        @error('variant_value_id')
+                            <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
             <!-- Additional Details -->
             <div class="bg-indigo-50 p-6 mb-6 rounded-lg border border-indigo-200">
                 <h2 class="section-title text-lg pb-4"><i class="fas fa-list-alt mr-2 text-indigo-600"></i> Additional Details</h2>
@@ -205,7 +236,7 @@
                     <div class="mb-4">
                         <label for="barcode" class="form-label">Barcode</label>
                         <input type="text" name="barcode" class="form-control @error('barcode') error-border @enderror"
-                               id="barcode" placeholder="Enter barcode number" value="{{ old('barcode', $product->barcode) }}" required>
+                               id="barcode" placeholder="Enter barcode number" value="{{ old('barcode', $product->barcode) }}">
                         @error('barcode')
                             <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
                         @enderror
@@ -258,7 +289,7 @@
 
             <!-- Status -->
             <div class="bg-gray-50 p-6 mb-6 rounded-lg border border-gray-200">
-                <h2 class="section-title"><i class="fas fa-toggle-on mr-2 text-gray-600"></i> Status</h2>
+                <h2 class="section-title text-lg pb-4"><i class="fas fa-toggle-on mr-2 text-gray-600"></i> Status</h2>
                 <div class="mb-4">
                     <label for="status" class="form-label">Status</label>
                     <select name="status" class="form-control @error('status') error-border @enderror" id="status">
@@ -287,8 +318,9 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-            // Preload categories from controller
-            const categories = @json($categoryData);
+            // Preload categories and variants from controller
+            const categories = @json($categoryData ?? []);
+            const variants = @json($variantData ?? []);
 
             // Populate subcategories when parent category changes
             $('#parent_category_id').on('change', function () {
@@ -296,28 +328,52 @@
                 const subcategorySelect = $('#category_id');
                 subcategorySelect.empty().append('<option value="">Select Subcategory</option>');
 
-                // Filter subcategories (categories with matching parent_id and no children)
                 const subcategories = categories.filter(category =>
                     category.parent_id == parentId && !category.has_children
                 );
 
-                // Add subcategories to dropdown
                 subcategories.forEach(category => {
                     subcategorySelect.append(
                         `<option value="${category.id}">${category.name}</option>`
                     );
                 });
 
-                // If editing, select the current subcategory
+                // Pre-select the current subcategory
                 const currentCategoryId = '{{ old('category_id', $product->category_id) }}';
                 if (currentCategoryId) {
                     subcategorySelect.val(currentCategoryId);
                 }
             });
 
-            // Trigger change on page load to populate subcategories
+            // Populate variant values when variant changes
+            $('#variant_id').on('change', function () {
+                const variantId = $(this).val();
+                const variantValueSelect = $('#variant_value_id');
+                variantValueSelect.empty().append('<option value="">Select Variant Value</option>').prop('disabled', !variantId);
+
+                if (variantId) {
+                    const selectedVariant = variants.find(variant => variant.id == variantId);
+                    if (selectedVariant && selectedVariant.values) {
+                        selectedVariant.values.forEach(value => {
+                            variantValueSelect.append(
+                                `<option value="${value.id}">${value.value}</option>`
+                            );
+                        });
+                    }
+                    // Pre-select the current variant value
+                    const currentVariantValueId = '{{ old('variant_value_id', $product->variantValues->first() ? $product->variantValues->first()->id : '') }}';
+                    if (currentVariantValueId) {
+                        variantValueSelect.val(currentVariantValueId);
+                    }
+                }
+            });
+
+            // Trigger change on page load to populate subcategories and variant values
             @if (old('parent_category_id', $product->category ? $product->category->parent_id : null))
-                $('#parent_category_id').trigger('change');
+                $('#parent_category_id').val('{{ old('parent_category_id', $product->category ? $product->category->parent_id : '') }}').trigger('change');
+            @endif
+            @if (old('variant_id', $product->variantValues->first() ? $product->variantValues->first()->pivot->variant_id : null))
+                $('#variant_id').val('{{ old('variant_id', $product->variantValues->first() ? $product->variantValues->first()->pivot->variant_id : '') }}').trigger('change');
             @endif
         });
     </script>

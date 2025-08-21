@@ -8,6 +8,7 @@ use App\Http\Resources\ProductResource;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Unit;
+use App\Models\Variant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,21 +27,30 @@ class ProductController extends Controller
         return view('products.index')->with('products', $products);
     }
 
-    public function create()
-    {
-        $categories = Category::where('status', 1)->get();
-        $categoryData = $categories->map(function ($category) {
-            return [
-                'id' => $category->id,
-                'name' => $category->name,
-                'parent_id' => $category->parent_id,
-                'has_children' => $category->children()->exists()
-            ];
-        });
-        $units = Unit::where('status', 1)->get();
-        return view('products.create', compact('categories', 'categoryData', 'units'));
-    }
-
+   public function create()
+{
+    $categories = Category::where('status', 1)->get();
+    $categoryData = $categories->map(function ($category) {
+        return [
+            'id' => $category->id,
+            'name' => $category->name,
+            'parent_id' => $category->parent_id,
+            'has_children' => $category->children()->exists()
+        ];
+    });
+    $units = Unit::where('status', 1)->get();
+    $variants = Variant::with('values')->where('status', 1)->get();
+    $variantData = $variants->map(function ($variant) {
+        return [
+            'id' => $variant->id,
+            'name' => $variant->name,
+            'values' => $variant->values->map(function ($value) {
+                return ['id' => $value->id, 'value' => $value->value];
+            })->toArray()
+        ];
+    })->toArray();
+    return view('products.create', compact('categories', 'categoryData', 'units', 'variants', 'variantData'));
+}
     public function store(ProductStoreRequest $request)
     {
         $image_path = '';
@@ -74,6 +84,12 @@ class ProductController extends Controller
         if (!$product) {
             return redirect()->back()->with('error', 'Sorry, something went wrong while creating product.');
         }
+
+        // Save variant values if selected
+        if ($request->filled('variant_value_id') && $request->filled('variant_id')) {
+            $product->variantValues()->attach($request->variant_value_id, ['variant_id' => $request->variant_id]);
+        }
+
         return redirect()->route('products.index')->with('success', 'Success, new product has been added successfully!');
     }
 
@@ -82,20 +98,30 @@ class ProductController extends Controller
         //
     }
 
-    public function edit(Product $product)
-    {
-        $categories = Category::where('status', 1)->get();
-        $categoryData = $categories->map(function ($category) {
-            return [
-                'id' => $category->id,
-                'name' => $category->name,
-                'parent_id' => $category->parent_id,
-                'has_children' => $category->children()->exists()
-            ];
-        });
-        $units = Unit::where('status', 1)->get();
-        return view('products.edit', compact('product', 'categories', 'categoryData', 'units'));
-    }
+   public function edit(Product $product)
+{
+    $categories = Category::where('status', 1)->get();
+    $categoryData = $categories->map(function ($category) {
+        return [
+            'id' => $category->id,
+            'name' => $category->name,
+            'parent_id' => $category->parent_id,
+            'has_children' => $category->children()->exists()
+        ];
+    });
+    $units = Unit::where('status', 1)->get();
+    $variants = Variant::with('values')->where('status', 1)->get();
+    $variantData = $variants->map(function ($variant) {
+        return [
+            'id' => $variant->id,
+            'name' => $variant->name,
+            'values' => $variant->values->map(function ($value) {
+                return ['id' => $value->id, 'value' => $value->value];
+            })->toArray()
+        ];
+    })->toArray();
+    return view('products.edit', compact('product', 'categories', 'categoryData', 'units', 'variants', 'variantData'));
+}
 
     public function update(ProductUpdateRequest $request, Product $product)
     {
@@ -129,22 +155,27 @@ class ProductController extends Controller
         if (!$product->save()) {
             return redirect()->back()->with('error', 'Sorry, something went wrong while updating product.');
         }
+
+        // Update variant values
+        $product->variantValues()->detach();
+        if ($request->filled('variant_value_id') && $request->filled('variant_id')) {
+            $product->variantValues()->attach($request->variant_value_id, ['variant_id' => $request->variant_id]);
+        }
+
         return redirect()->route('products.index')->with('success', 'Success, product has been updated.');
     }
 
     public function destroy(Product $product)
     {
-        // Check if the product is associated with any order items
         if ($product->orderItems()->exists()) {
             return redirect()->route('products.index')->with('error', 'Cannot delete product because it is associated with one or more orders.');
         }
 
-        // Delete the product image if it exists
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
 
-        // Delete the product
+        $product->variantValues()->detach();
         $product->delete();
 
         return redirect()->route('products.index')->with('success', 'Product deleted successfully.');

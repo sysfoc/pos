@@ -45,4 +45,11 @@ class Product extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function variantValues()
+    {
+        return $this->belongsToMany(VariantValue::class, 'product_variants')
+                    ->withPivot('variant_id')
+                    ->withTimestamps();
+    }
 }

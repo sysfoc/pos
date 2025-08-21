@@ -26,41 +26,72 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // Validation rules based on whether it's a main category or subcategory
+        $rules = [
             'code' => 'nullable|string|max:50|unique:categories,code',
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
-            'description' => 'nullable|string',
             'status' => 'boolean',
-        ]);
+        ];
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+        // Require description only for subcategories
+        if ($request->filled('parent_id')) {
+            $rules['description'] = 'nullable|string';
         }
 
-        Category::create($request->only(['code', 'name', 'parent_id', 'description', 'status']));
+        $validator = Validator::make($request->all(), $rules);
 
-        return redirect()->route('categories.index')->with('success', 'Category created successfully.');
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Prepare data, excluding description for main categories
+        $data = $request->only(['code', 'name', 'parent_id', 'status']);
+        if ($request->filled('parent_id')) {
+            $data['description'] = $request->input('description');
+        } else {
+            $data['description'] = null; // Explicitly set to null for main categories
+        }
+
+        Category::create($data);
+
+        return response()->json(['message' => 'Category created successfully.']);
     }
 
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
+        $category = Category::findOrFail($id);
+
+        // Validation rules based on whether it's a main category or subcategory
+        $rules = [
             'code' => 'nullable|string|max:50|unique:categories,code,' . $id,
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
-            'description' => 'nullable|string',
             'status' => 'boolean',
-        ]);
+        ];
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+        // Require description only for subcategories
+        if ($request->filled('parent_id') || $category->parent_id) {
+            $rules['description'] = 'required|string';
         }
 
-        $category = Category::findOrFail($id);
-        $category->update($request->only(['code', 'name', 'parent_id', 'description', 'status']));
+        $validator = Validator::make($request->all(), $rules);
 
-        return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Prepare data, excluding description for main categories
+        $data = $request->only(['code', 'name', 'parent_id', 'status']);
+        if ($request->filled('parent_id') || $category->parent_id) {
+            $data['description'] = $request->input('description');
+        } else {
+            $data['description'] = null; // Explicitly set to null for main categories
+        }
+
+        $category->update($data);
+
+        return response()->json(['message' => 'Category updated successfully.']);
     }
 
     public function destroy($id)
@@ -68,12 +99,12 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
         // Check if category has children or products before deleting
         if ($category->children()->exists()) {
-            return redirect()->route('categories.index')->with('error', 'Cannot delete category with subcategories.');
+            return response()->json(['message' => 'Cannot delete category with subcategories.'], 400);
         }
         if ($category->products()->exists()) {
-            return redirect()->route('categories.index')->with('error', 'Cannot delete category with associated products.');
+            return response()->json(['message' => 'Cannot delete category with associated products.'], 400);
         }
         $category->delete();
-        return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
+        return response()->json(['message' => 'Category deleted successfully.']);
     }
 }
