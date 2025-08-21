@@ -172,9 +172,9 @@
                         @enderror
                     </div>
                     <div class="mb-4">
-                        <label for="threshold" class="form-label">Threshold</label>
+                        <label for="threshold" class="form-label">Minimum Stock Level</label>
                         <input type="number" name="threshold" class="form-control @error('threshold') error-border @enderror" id="threshold"
-                               placeholder="Enter stock threshold" value="{{ old('threshold', $product->quantity) }}">
+                               placeholder="Enter minimum stock level" value="{{ old('threshold', $product->quantity) }}">
                         @error('threshold')
                             <span class="error-text"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</span>
                         @enderror
