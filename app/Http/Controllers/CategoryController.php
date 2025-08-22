@@ -17,6 +17,7 @@ class CategoryController extends Controller
         return view('categories.index', compact('categories', 'mainCategories'));
     }
 
+
     public function create()
     {
         // Fetch only active main categories (parent_id is null) that have subcategories

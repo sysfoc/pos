@@ -315,15 +315,27 @@
                 const subcategorySelect = $('#category_id');
                 subcategorySelect.empty().append('<option value="">Select Subcategory</option>');
 
-                const subcategories = categories.filter(category =>
-                    category.parent_id == parentId && !category.has_children
-                );
-
-                subcategories.forEach(category => {
-                    subcategorySelect.append(
-                        `<option value="${category.id}">${category.name}</option>`
+                if (parentId) {
+                    const subcategories = categories.filter(category =>
+                        category.parent_id == parentId && !category.has_children
                     );
-                });
+
+                    if (subcategories.length > 0) {
+                        subcategories.forEach(category => {
+                            subcategorySelect.append(
+                                `<option value="${category.id}">${category.name}</option>`
+                            );
+                        });
+                    } else {
+                        // If no subcategories, use the parent category itself
+                        const parentCategory = categories.find(category => category.id == parentId);
+                        if (parentCategory) {
+                            subcategorySelect.append(
+                                `<option value="${parentCategory.id}" selected>${parentCategory.name}</option>`
+                            );
+                        }
+                    }
+                }
             });
 
             // Populate variant values when variant changes
@@ -347,11 +359,22 @@
             // Trigger change on page load to populate subcategories
             @if (old('parent_category_id'))
                 $('#parent_category_id').val('{{ old('parent_category_id') }}').trigger('change');
+                // If old category_id exists, select it in subcategory
+                @if (old('category_id'))
+                    setTimeout(() => {
+                        $('#category_id').val('{{ old('category_id') }}');
+                    }, 100); // Small delay to ensure options are populated
+                @endif
             @endif
 
             // Trigger change on page load to populate variant values
             @if (old('variant_id'))
                 $('#variant_id').val('{{ old('variant_id') }}').trigger('change');
+                @if (old('variant_value_id'))
+                    setTimeout(() => {
+                        $('#variant_value_id').val('{{ old('variant_value_id') }}');
+                    }, 100);
+                @endif
             @endif
         });
     </script>

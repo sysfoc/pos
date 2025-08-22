@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -20,7 +21,7 @@ class CartController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'barcode' => 'required|exists:products,barcode',
+            'barcode' => 'nullable|exists:products,barcode',
         ]);
         $barcode = $request->barcode;
 
@@ -82,5 +83,31 @@ class CartController extends Controller
         $request->user()->cart()->detach();
 
         return response('', 204);
+    }
+
+    public function categories(Request $request)
+    {
+        $categories = Category::where('status', 1)
+            ->whereNull('parent_id')
+            ->with(['children' => function ($query) {
+                $query->where('status', 1);
+            }])
+            ->get()
+            ->map(function ($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'subcategories' => $category->children->map(function ($child) {
+                        return [
+                            'id' => $child->id,
+                            'name' => $child->name,
+                            'product_count' => $child->products()->where('status', 1)->count(),
+                        ];
+                    })->toArray(),
+                    'product_count' => $category->products()->where('status', 1)->count(),
+                ];
+            });
+
+        return response()->json($categories);
     }
 }

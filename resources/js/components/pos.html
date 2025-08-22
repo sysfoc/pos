@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grostore - Online Grocery Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .category-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 auto 8px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="flex items-center justify-between px-6 py-4">
+            <div class="flex items-center space-x-8">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">G</span>
+                    </div>
+                    <span class="text-xl font-bold text-gray-800">Grostore</span>
+                </div>
+            </div>
+
+            <div class="flex-1 max-w-md mx-8">
+                <div class="relative">
+                    <input type="text" placeholder="Search (Ctrl+/)"
+                           class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <div class="absolute left-3 top-2.5">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <button class="p-2 text-gray-600 hover:text-gray-800">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                    </svg>
+                </button>
+                <button class="p-2 text-gray-600 hover:text-gray-800">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+                <button class="p-2 text-gray-600 hover:text-gray-800 relative">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-5z"></path>
+                    </svg>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                </button>
+                <div class="w-8 h-8 bg-green-500 rounded-full"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex">
+        <!-- Main Content -->
+        <div class="flex-1 p-6">
+            <!-- Categories Section -->
+            <div class="mb-8">
+                <div class="flex space-x-2 mb-4">
+                    <button class="px-4 py-2 bg-green-500 text-white rounded-lg">Categories</button>
+                    <button class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200">Brands</button>
+                </div>
+
+                <div class="grid grid-cols-8 gap-4">
+                    <div class="text-center">
+                        <div class="category-icon bg-orange-100">🥕</div>
+                        <span class="text-sm font-medium">Vegetable</span>
+                        <div class="text-xs text-gray-500">+ 14 items</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="category-icon bg-yellow-100">☕</div>
+                        <span class="text-sm font-medium">Coffee & Drinks</span>
+                        <div class="text-xs text-gray-500">+ 16 items</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="category-icon bg-green-500 text-white">🥛</div>
+                        <span class="text-sm font-medium">Milk & Dairy</span>
+                        <div class="text-xs text-gray-500">+ 25 items</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="category-icon bg-pink-100">🥩</div>
+                        <span class="text-sm font-medium">Meat</span>
+                        <div class="text-xs text-gray-500">+ 25 items</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="category-icon bg-green-100">🧽</div>
+                        <span class="text-sm font-medium">Cleaning Essential</span>
+                        <div class="text-xs text-gray-500">+ 25 items</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="category-icon bg-blue-100">🍎</div>
+                        <span class="text-sm font-medium">Fresh Fruits</span>
+                        <div class="text-xs text-gray-500">+ 25 items</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="category-icon bg-purple-100">🥩</div>
+                        <span class="text-sm font-medium">Meat</span>
+                        <div class="text-xs text-gray-500">+ 25 items</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="category-icon bg-green-100">🧹</div>
+                        <span class="text-sm font-medium">Cleaning Essential</span>
+                        <div class="text-xs text-gray-500">+ 25 items</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-4">New Grocery Products</h2>
+                <div class="flex space-x-4">
+                    <div class="relative flex-1">
+                        <input type="text" placeholder="Search" class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg">
+                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <button class="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700">Search</button>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="grid grid-cols-4 gap-6">
+                <!-- Product 1 -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full mb-3 flex items-center justify-center text-2xl">🥕</div>
+                    <h3 class="font-medium text-sm mb-1">Popped Rice Special Chocolate...</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <!-- Product 2 -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-red-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍓</div>
+                    <h3 class="font-medium text-sm mb-1">Strawberry juice Shortcake</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <!-- Product 3 -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍫</div>
+                    <h3 class="font-medium text-sm mb-1">Popped Rice Special Chocolate...</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <!-- Product 4 -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍊</div>
+                    <h3 class="font-medium text-sm mb-1">Tangerine bitter orange Lemon</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <!-- Product 5 -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full mb-3 flex items-center justify-center text-2xl">🥜</div>
+                    <h3 class="font-medium text-sm mb-1">Almond Nut Dried fruit Oil & Healthy</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <!-- Product 6 -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-red-100 rounded-full mb-3 flex items-center justify-center text-2xl">🥩</div>
+                    <h3 class="font-medium text-sm mb-1">Sausage Ribeye steak free Beef</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <!-- Product 7 -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-red-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍎</div>
+                    <h3 class="font-medium text-sm mb-1">Popped Rice Special Chocolate...</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <!-- Product 8 -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍇</div>
+                    <h3 class="font-medium text-sm mb-1">Popped Rice Special Chocolate...</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <!-- Continue with more products -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-green-100 rounded-full mb-3 flex items-center justify-center text-2xl">🥬</div>
+                    <h3 class="font-medium text-sm mb-1">Popped Rice Special Chocolate...</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-pink-100 rounded-full mb-3 flex items-center justify-center text-2xl">🌸</div>
+                    <h3 class="font-medium text-sm mb-1">Popped Rice Special Chocolate...</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-green-100 rounded-full mb-3 flex items-center justify-center text-2xl">🥬</div>
+                    <h3 class="font-medium text-sm mb-1">Popped Rice Special Chocolate...</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍊</div>
+                    <h3 class="font-medium text-sm mb-1">Grapefruit juice Pomelo juice and flavour</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <!-- More products -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-green-100 rounded-full mb-3 flex items-center justify-center text-2xl">🥤</div>
+                    <h3 class="font-medium text-sm mb-1">Pomelo Juice Grapefruit Peel</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍇</div>
+                    <h3 class="font-medium text-sm mb-1">Popped Rice Special Chocolate...</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-red-100 rounded-full mb-3 flex items-center justify-center text-2xl">🧅</div>
+                    <h3 class="font-medium text-sm mb-1">Sambar Shallot Vegetable Red onion</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-red-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍓</div>
+                    <h3 class="font-medium text-sm mb-1">Popped Rice Special Chocolate...</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <!-- Last row -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍊</div>
+                    <h3 class="font-medium text-sm mb-1">Popped Rice Special Chocolate...</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-red-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍓</div>
+                    <h3 class="font-medium text-sm mb-1">Popped Rice Special Chocolate...</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-red-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍉</div>
+                    <h3 class="font-medium text-sm mb-1">Watermelon Citrullus Lanatus</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="w-16 h-16 bg-red-100 rounded-full mb-3 flex items-center justify-center text-2xl">🍅</div>
+                    <h3 class="font-medium text-sm mb-1">Cherry tomato Organic food Tomato</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-400 line-through text-sm">$108.60</span>
+                        <span class="text-green-600 font-semibold">$105.60</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shopping Cart Sidebar -->
+        <div class="w-96 bg-white border-l p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-lg font-semibold">Billing Section</h2>
+                <div class="flex items-center space-x-2">
+                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-sm">Customer</span>
+                </div>
+            </div>
+
+            <!-- Add Item Section -->
+            <div class="mb-6">
+                <div class="flex space-x-2 mb-4">
+                    <input type="text" placeholder="Add by Item Code"
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <button class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">
+                        Add Item
+                    </button>
+                    <button class="px-3 py-2 text-gray-500 hover:text-gray-700">
+                        Clear Cart
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cart Items -->
+            <div class="space-y-4 mb-6">
+                <div class="flex items-center justify-between py-2">
+                    <span class="text-sm font-medium">QTY</span>
+                    <span class="text-sm font-medium">Price</span>
+                    <span class="text-sm font-medium">Delete</span>
+                </div>
+
+                <!-- Cart Item 1 -->
+                <div class="flex items-center space-x-3 py-2 border-b">
+                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-sm">🥕</div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-medium">Kakaina Organic Turmeric turmeric powder</h4>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <button class="w-6 h-6 border border-gray-300 rounded flex items-center justify-center text-sm">-</button>
+                            <span class="text-sm">2</span>
+                            <button class="w-6 h-6 border border-gray-300 rounded flex items-center justify-center text-sm">+</button>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm font-semibold">$105.60</div>
+                        <button class="text-red-500 hover:text-red-700 text-sm">🗑️</button>
+                    </div>
+                </div>
+
+                <!-- Cart Item 2 -->
+                <div class="flex items-center space-x-3 py-2 border-b">
+                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-sm">🍫</div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-medium">Popped Rice Special Chocolate...</h4>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <button class="w-6 h-6 border border-gray-300 rounded flex items-center justify-center text-sm">-</button>
+                            <span class="text-sm">2</span>
+                            <button class="w-6 h-6 border border-gray-300 rounded flex items-center justify-center text-sm">+</button>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm font-semibold">$105.60</div>
+                        <button class="text-red-500 hover:text-red-700 text-sm">🗑️</button>
+                    </div>
+                </div>
+
+                <!-- Cart Item 3 -->
+                <div class="flex items-center space-x-3 py-2 border-b">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm">🍗</div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-medium">Halal Whole Chicken</h4>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <button class="w-6 h-6 border border-gray-300 rounded flex items-center justify-center text-sm">-</button>
+                            <span class="text-sm">2</span>
+                            <button class="w-6 h-6 border border-gray-300 rounded flex items-center justify-center text-sm">+</button>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm font-semibold">$105.60</div>
+                        <button class="text-red-500 hover:text-red-700 text-sm">🗑️</button>
+                    </div>
+                </div>
+
+                <!-- Cart Item 4 -->
+                <div class="flex items-center space-x-3 py-2 border-b">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm">🍄</div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-medium">Frozen Mushroom</h4>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <button class="w-6 h-6 border border-gray-300 rounded flex items-center justify-center text-sm">-</button>
+                            <span class="text-sm">2</span>
+                            <button class="w-6 h-6 border border-gray-300 rounded flex items-center justify-center text-sm">+</button>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm font-semibold">$105.60</div>
+                        <button class="text-red-500 hover:text-red-700 text-sm">🗑️</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bill Summary -->
+            <div class="space-y-2 mb-6 text-sm">
+                <div class="flex justify-between">
+                    <span>Sub total:</span>
+                    <span>1250$</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Product Discount:</span>
+                    <span>240$</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Extra Discount:</span>
+                    <span>0.00$</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Coupon discount:</span>
+                    <span>0.00$</span>
+                </div>
+                <div class="border-t pt-2 mt-2">
+                    <div class="flex justify-between font-semibold">
+                        <span>Total:</span>
+                        <span>4500$</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-3">
+                <button class="w-full px-4 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                    Cancel Order
+                </button>
+                <button class="w-full px-4 py-3 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors">
+                    Place Order
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add interactive functionality
+        function updateQuantity(button, change) {
+            const quantitySpan = button.parentElement.querySelector('span');
+            let currentQuantity = parseInt(quantitySpan.textContent);
+            const newQuantity = Math.max(1, currentQuantity + change);
+            quantitySpan.textContent = newQuantity;
+        }
+
+        // Add event listeners for quantity buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const minusButtons = document.querySelectorAll('button:contains("-")');
+            const plusButtons = document.querySelectorAll('button:contains("+")');
+
+            document.querySelectorAll('.w-6.h-6').forEach(button => {
+                if (button.textContent === '-') {
+                    button.addEventListener('click', () => updateQuantity(button, -1));
+                } else if (button.textContent === '+') {
+                    button.addEventListener('click', () => updateQuantity(button, 1));
+                }
+            });
+        });
+    </script>
+</body>
+</html>

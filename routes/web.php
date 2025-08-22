@@ -1,13 +1,12 @@
 <?php
 
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\VariantController;
-
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 
 use App\Http\Controllers\SettingController;
@@ -27,15 +26,17 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::resource('products', ProductController::class);
     Route::resource('customers', CustomerController::class);
     Route::resource('orders', OrderController::class);
-     Route::resource('categories', CategoryController::class);
+     Route::resource('categories', CategoryController::class)->except(['show']);;
       Route::resource('units', UnitController::class);
       Route::resource('variants', VariantController::class)->except(['create', 'show', 'edit']);
-
+Route::get('categories/pos', [CartController::class, 'categories'])->name('categories.pos');
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
     Route::post('/cart/change-qty', [CartController::class, 'changeQty']);
     Route::delete('/cart/delete', [CartController::class, 'delete']);
     Route::delete('/cart/empty', [CartController::class, 'empty']);
+
+
 
 
 
