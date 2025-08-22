@@ -23,6 +23,7 @@ class Cart extends Component {
             barcode: "",
             search: "",
             customer_id: "",
+            extraDiscount: 0,
             error: null,
             currentPage: 1,
             totalPages: 1,
@@ -49,6 +50,7 @@ class Cart extends Component {
         this.scrollCategories = this.scrollCategories.bind(this);
         this.scrollSubcategories = this.scrollSubcategories.bind(this);
         this.toggleLayout = this.toggleLayout.bind(this);
+        this.handleChangeExtraDiscount = this.handleChangeExtraDiscount.bind(this);
     }
 
     componentDidMount() {
@@ -164,18 +166,13 @@ class Cart extends Component {
             });
     }
 
-    getTotal(cart) {
-        const total = cart.map(c => c.pivot.quantity * c.price);
-        return sum(total).toFixed(2);
+    handleChangeExtraDiscount(event) {
+        const value = parseFloat(event.target.value) || 0;
+        this.setState({ extraDiscount: Math.min(Math.max(value, 0), 100) });
     }
 
     getSubtotal(cart) {
-        const total = cart.map(c => c.pivot.quantity * c.price);
-        return sum(total);
-    }
-
-    getDiscount(cart) {
-        return (this.getSubtotal(cart) * 0.05);
+        return sum(cart.map(c => c.price * (1 - (c.discount_percentage || 0) / 100) * c.pivot.quantity));
     }
 
     handleClickDelete(product_id) {
@@ -273,15 +270,16 @@ class Cart extends Component {
     }
 
     handleClickSubmit() {
+        const total = this.getTotal();
         Swal.fire({
             title: 'Received Amount',
             input: 'text',
-            inputValue: this.getTotal(this.state.cart),
+            inputValue: total,
             showCancelButton: true,
             confirmButtonText: 'Send',
             showLoaderOnConfirm: true,
             preConfirm: (amount) => {
-                return axios.post('/admin/orders', { customer_id: this.state.customer_id, amount }).then(res => {
+                return axios.post('/admin/orders', { customer_id: this.state.customer_id, amount, extra_discount: this.state.extraDiscount }).then(res => {
                     this.loadCart();
                     return res.data;
                 }).catch(err => {
@@ -315,10 +313,16 @@ class Cart extends Component {
         this.setState({ layout, showLayoutDropdown: false });
     }
 
+    getTotal() {
+        const subtotal = this.getSubtotal(this.state.cart);
+        const discount = subtotal * (this.state.extraDiscount / 100);
+        return subtotal - discount;
+    }
+
     render() {
-        const { cart, products, customers, categories, barcode, selectedCategory, selectedSubcategory, error, search, currentPage, totalPages, categoryScrollPosition, subcategoryScrollPosition, layout, showLayoutDropdown } = this.state;
+        const { cart, products, customers, categories, barcode, selectedCategory, selectedSubcategory, error, search, currentPage, totalPages, categoryScrollPosition, subcategoryScrollPosition, layout, showLayoutDropdown, extraDiscount } = this.state;
         const subtotal = this.getSubtotal(cart);
-        const discount = this.getDiscount(cart);
+        const discount = subtotal * (extraDiscount / 100);
         const total = subtotal - discount;
 
         const isCategoryStart = categoryScrollPosition <= 0;
@@ -621,8 +625,17 @@ class Cart extends Component {
                                     </option>
                                 ))}
                             </select>
+                            {/* Barcode Input */}
+                            <form onSubmit={this.handleScanBarcode} className="mt-4">
+                                <input
+                                    type="text"
+                                    value={barcode}
+                                    onChange={this.handleOnChangeBarcode}
+                                    placeholder="Scan or enter barcode"
+                                    className="w-full px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                />
+                            </form>
                             <div className="flex space-x-2 mt-2">
-
                                 <button
                                     className="px-3 py-1.5 sm:py-2 text-gray-500 hover:text-gray-700 text-xs sm:text-sm"
                                     onClick={this.handleEmptyCart}
@@ -635,14 +648,16 @@ class Cart extends Component {
                         {/* Cart Items */}
                         <div className="space-y-4 mb-4 sm:mb-6">
                             <div className="flex items-center justify-between py-2 text-xs sm:text-sm font-medium text-gray-600">
+                                <span>Item</span>
+                                <span>Discount %</span>
                                 <span>QTY</span>
                                 <span>Price</span>
                                 <span>Delete</span>
                             </div>
 
                             {cart.map(item => (
-                                <div key={item.id} className="flex items-center space-x-3 py-2 border-b">
-                                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs sm:text-sm overflow-hidden">
+                                <div key={item.id} className="flex items-center space-x-3 py-2 border-b text-xs sm:text-sm">
+                                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
                                         {item.image_url ? (
                                             <img
                                                 src={item.image_url}
@@ -654,34 +669,37 @@ class Cart extends Component {
                                         )}
                                     </div>
                                     <div className="flex-1">
-                                        <h4 className="text-xs sm:text-sm font-medium truncate">{item.name}</h4>
-                                        <div className="flex items-center space-x-2 mt-1">
-                                            <button
-                                                className="w-5 sm:w-6 h-5 sm:h-6 border border-gray-300 rounded flex items-center justify-center text-xs sm:text-sm hover:bg-gray-100"
-                                                onClick={() => this.handleChangeQty(item.id, Math.max(1, item.pivot.quantity - 1))}
-                                            >
-                                                -
-                                            </button>
-                                            <span className="text-xs sm:text-sm">{item.pivot.quantity}</span>
-                                            <button
-                                                className="w-5 sm:w-6 h-5 sm:h-6 border border-gray-300 rounded flex items-center justify-center text-xs sm:text-sm hover:bg-gray-100"
-                                                onClick={() => this.handleChangeQty(item.id, item.pivot.quantity + 1)}
-                                            >
-                                                +
-                                            </button>
-                                        </div>
+                                        <h4 className="font-medium truncate">{item.name}</h4>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-xs sm:text-sm font-semibold">
-                                            {window.APP ? window.APP.currency_symbol : '$'}{(item.price * item.pivot.quantity).toFixed(2)}
-                                        </div>
+                                    <div className="text-gray-600">
+                                        {item.discount_percentage || 0}%
+                                    </div>
+                                    <div className="flex items-center space-x-2">
                                         <button
-                                            className="text-red-500 hover:text-red-700 text-xs sm:text-sm mt-1"
-                                            onClick={() => this.handleClickDelete(item.id)}
+                                            className="w-5 sm:w-6 h-5 sm:h-6 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-100"
+                                            onClick={() => this.handleChangeQty(item.id, Math.max(1, item.pivot.quantity - 1))}
                                         >
-                                            🗑️
+                                            -
+                                        </button>
+                                        <span>{item.pivot.quantity}</span>
+                                        <button
+                                            className="w-5 sm:w-6 h-5 sm:h-6 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-100"
+                                            onClick={() => this.handleChangeQty(item.id, item.pivot.quantity + 1)}
+                                        >
+                                            +
                                         </button>
                                     </div>
+                                    <div className="text-right">
+                                        <div className="font-semibold">
+                                            {window.APP ? window.APP.currency_symbol : '$'}{(item.price * (1 - (item.discount_percentage || 0) / 100) * item.pivot.quantity).toFixed(2)}
+                                        </div>
+                                    </div>
+                                    <button
+                                        className="text-red-500 hover:text-red-700 mt-1"
+                                        onClick={() => this.handleClickDelete(item.id)}
+                                    >
+                                        🗑️
+                                    </button>
                                 </div>
                             ))}
                         </div>
@@ -692,17 +710,17 @@ class Cart extends Component {
                                 <span>Sub total:</span>
                                 <span>{window.APP ? window.APP.currency_symbol : '$'}{subtotal.toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span>Product Discount:</span>
-                                <span>{window.APP ? window.APP.currency_symbol : '$'}{discount.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Extra Discount:</span>
-                                <span>{window.APP ? window.APP.currency_symbol : '$'}0.00</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Coupon discount:</span>
-                                <span>{window.APP ? window.APP.currency_symbol : '$'}0.00</span>
+                            <div className="flex justify-between items-center">
+                                <span>Extra discount (%):</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    value={extraDiscount}
+                                    onChange={this.handleChangeExtraDiscount}
+                                    className="w-20 px-2 py-1 text-right border border-gray-300 rounded"
+                                />
                             </div>
                             <div className="border-t pt-2 mt-2">
                                 <div className="flex justify-between font-semibold">

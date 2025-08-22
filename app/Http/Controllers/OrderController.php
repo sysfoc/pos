@@ -35,10 +35,14 @@ class OrderController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
+        $extra_discount = $request->extra_discount ?? 0;
+
         $cart = $request->user()->cart()->get();
         foreach ($cart as $item) {
+            $discounted_unit_price = $item->price * (1 - ($item->discount_percentage / 100));
+            $final_price = $discounted_unit_price * (1 - ($extra_discount / 100)) * $item->pivot->quantity;
             $order->items()->create([
-                'price' => $item->price * $item->pivot->quantity,
+                'price' => $final_price,
                 'quantity' => $item->pivot->quantity,
                 'product_id' => $item->id,
             ]);
