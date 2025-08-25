@@ -48,7 +48,7 @@ class ProductController extends Controller
         return ProductResource::collection($products);
     }
 
-    $products = $query->latest()->paginate(10);
+    $products = $query->latest()->get();
     return view('products.index')->with('products', $products);
 }
 

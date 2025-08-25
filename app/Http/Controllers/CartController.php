@@ -18,36 +18,52 @@ class CartController extends Controller
         return view('cart.index');
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'barcode' => 'nullable|exists:products,barcode',
-        ]);
-        $barcode = $request->barcode;
+   public function store(Request $request)
+{
+    $request->validate([
+        'barcode' => 'nullable|string',
+        'product_id' => 'nullable|exists:products,id',
+    ]);
 
-        $product = Product::where('barcode', $barcode)->first();
-        $cart = $request->user()->cart()->where('barcode', $barcode)->first();
-        if ($cart) {
-            // check product quantity
-            if($product->quantity <= $cart->pivot->quantity) {
-                return response([
-                    'message' => 'Product available only: '. $product->quantity,
-                ], 400);
-            }
-            // update only quantity
-            $cart->pivot->quantity = $cart->pivot->quantity + 1;
-            $cart->pivot->save();
-        } else {
-            if($product->quantity < 1) {
-                return response([
-                    'message' => 'Product out of stock',
-                ], 400);
-            }
-            $request->user()->cart()->attach($product->id, ['quantity' => 1]);
-        }
+    $product = null;
 
-        return response('', 204);
+    if ($request->filled('barcode')) {
+        $product = Product::where('barcode', $request->barcode)->first();
+    } elseif ($request->filled('product_id')) {
+        $product = Product::find($request->product_id);
     }
+
+    if (!$product) {
+        return response([
+            'message' => 'Product not found',
+        ], 404);
+    }
+
+    // find cart item by product id (not barcode anymore)
+    $cart = $request->user()->cart()->where('id', $product->id)->first();
+
+    if ($cart) {
+        // check stock
+        if ($product->quantity <= $cart->pivot->quantity) {
+            return response([
+                'message' => 'Product available only: ' . $product->quantity,
+            ], 400);
+        }
+        // increment
+        $cart->pivot->quantity = $cart->pivot->quantity + 1;
+        $cart->pivot->save();
+    } else {
+        if ($product->quantity < 1) {
+            return response([
+                'message' => 'Product out of stock',
+            ], 400);
+        }
+        $request->user()->cart()->attach($product->id, ['quantity' => 1]);
+    }
+
+    return response('', 204);
+}
+
 
     public function changeQty(Request $request)
     {
