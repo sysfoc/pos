@@ -19,7 +19,6 @@ axios.interceptors.response.use(
       "Something went wrong";
     if (status === 401) {
       Swal.fire("Session expired", "Please login again.", "error");
-      // window.location.reload();
     } else if (status === 419) {
       Swal.fire("Security error", "CSRF token mismatch.", "error");
     } else {
@@ -33,49 +32,35 @@ class Cart extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // data
       cart: [],
       products: [],
       categories: [],
       selectedCategory: null,
       selectedSubcategory: null,
-
-      // product search/pagination
       search: "",
       currentPage: 1,
       totalPages: 1,
-
-      // barcode & customer
       barcode: "",
       customer_id: "",
       extraDiscount: 0,
-
-      // customers lazy search (no full preload)
       customerQuery: "",
       customerOptions: [],
       customerLoading: false,
       showCustomerDropdown: false,
-
-      // UI states
       error: null,
       layout: "grid",
       showLayoutDropdown: false,
       categoryScrollPosition: 0,
       subcategoryScrollPosition: 0,
-
-      // loading/locks
-      loadingCart: false,
       loadingProducts: false,
       loadingCategories: false,
       scanningBarcode: false,
       submittingOrder: false,
-      changingQtyIds: {}, // { [product_id]: true }
-
-      // internals for debounce/cancellation
       _productSearchTimer: null,
     };
 
-    // binds
+    this.qtyTimers = {};
+
     this.loadCart = this.loadCart.bind(this);
     this.loadProducts = this.loadProducts.bind(this);
     this.loadCategories = this.loadCategories.bind(this);
@@ -100,8 +85,8 @@ class Cart extends Component {
     this.setCustomerId = this.setCustomerId.bind(this);
     this.onChangeCustomerQuery = this.onChangeCustomerQuery.bind(this);
     this.selectCustomer = this.selectCustomer.bind(this);
+    this.handleManualQtyChange = this.handleManualQtyChange.bind(this);
 
-    // axios cancel tokens
     this.productsCancelSource = null;
     this.customersCancelSource = null;
   }
@@ -110,27 +95,23 @@ class Cart extends Component {
     this.loadCart();
     this.loadProducts();
     this.loadCategories();
-    // we DO NOT pre-load all customers to avoid heavy payloads
   }
 
   componentWillUnmount() {
     if (this.productsCancelSource) this.productsCancelSource.cancel();
     if (this.customersCancelSource) this.customersCancelSource.cancel();
     if (this.state._productSearchTimer) clearTimeout(this.state._productSearchTimer);
+    Object.values(this.qtyTimers).forEach(clearTimeout);
   }
 
-  // ------------------- LOADERS -------------------
   async loadCart() {
     try {
-      this.setState({ loadingCart: true });
       const res = await axios.get("/admin/cart");
       this.setState({ cart: res.data, error: null });
     } catch (err) {
       this.setState({
         error: "Failed to load cart. Please check your connection or login status.",
       });
-    } finally {
-      this.setState({ loadingCart: false });
     }
   }
 
@@ -187,7 +168,6 @@ class Cart extends Component {
     }
   }
 
-  // ------------------- BARCODE -------------------
   handleOnChangeBarcode(e) {
     this.setState({ barcode: e.target.value });
   }
@@ -209,26 +189,24 @@ class Cart extends Component {
     }
   }
 
-  // ------------------- PRODUCTS → CART -------------------
   async addProductToCart(product) {
-  try {
-    if (product.barcode) {
-      await axios.post("/admin/cart", { barcode: product.barcode });
-    } else {
-      await axios.post("/admin/cart", { product_id: product.id });
+    const prevCart = this.state.cart.map((c) => ({ ...c, pivot: { ...c.pivot } }));
+    try {
+      if (product.barcode) {
+        await axios.post("/admin/cart", { barcode: product.barcode });
+      } else {
+        await axios.post("/admin/cart", { product_id: product.id });
+      }
+      await this.loadCart();
+    } catch (err) {
+      this.setState({ cart: prevCart });
     }
-    await this.loadCart();
-  } catch (err) {
-    // handled by interceptor
   }
-}
 
-  // ------------------- CART CHANGES -------------------
   async handleChangeQty(product_id, qty) {
     qty = Math.max(1, Number(qty) || 1);
     const prevCart = this.state.cart.map((c) => ({ ...c, pivot: { ...c.pivot } }));
 
-    // Optimistic UI with rollback if failed
     const nextCart = this.state.cart.map((c) => {
       if (c.id === product_id) {
         return { ...c, pivot: { ...c.pivot, quantity: qty } };
@@ -236,25 +214,31 @@ class Cart extends Component {
       return c;
     });
 
-    this.setState((s) => ({
-      cart: nextCart,
-      changingQtyIds: { ...s.changingQtyIds, [product_id]: true },
-    }));
+    this.setState({ cart: nextCart });
 
     try {
       await axios.post("/admin/cart/change-qty", { product_id, quantity: qty });
-      // (optional) refresh cart in case backend adjusted price/discount
       await this.loadCart();
     } catch (err) {
-      // rollback on error
       this.setState({ cart: prevCart });
-    } finally {
-      this.setState((s) => {
-        const copy = { ...s.changingQtyIds };
-        delete copy[product_id];
-        return { changingQtyIds: copy };
-      });
     }
+  }
+
+  handleManualQtyChange(product_id, e) {
+    const value = e.target.value;
+    const qty = Math.max(1, parseInt(value) || 1);
+
+    this.setState(s => ({
+      cart: s.cart.map(c =>
+        c.id === product_id ? { ...c, pivot: { ...c.pivot, quantity: qty } } : c
+      )
+    }));
+
+    if (this.qtyTimers[product_id]) clearTimeout(this.qtyTimers[product_id]);
+
+    this.qtyTimers[product_id] = setTimeout(() => {
+      this.handleChangeQty(product_id, qty);
+    }, 500);
   }
 
   async handleClickDelete(product_id) {
@@ -264,10 +248,9 @@ class Cart extends Component {
 
     try {
       await axios.post("/admin/cart/delete", { product_id, _method: "DELETE" });
-      // ensure sync
       await this.loadCart();
     } catch (err) {
-      this.setState({ cart: prevCart }); // rollback
+      this.setState({ cart: prevCart });
     }
   }
 
@@ -282,7 +265,6 @@ class Cart extends Component {
     }
   }
 
-  // ------------------- PRODUCTS SEARCH/PAGE -------------------
   handleChangeSearch(e) {
     const search = e.target.value;
     const { selectedCategory, selectedSubcategory, _productSearchTimer } = this.state;
@@ -336,7 +318,6 @@ class Cart extends Component {
     this.loadProducts("", subcategory.id, 1);
   }
 
-  // ------------------- SCROLLERS -------------------
   scrollCategories(direction) {
     const container = document.getElementById("category-carousel");
     if (container) {
@@ -359,7 +340,6 @@ class Cart extends Component {
     }
   }
 
-  // ------------------- CUSTOMERS (AJAX SEARCH) -------------------
   async searchCustomers(query) {
     if (this.customersCancelSource) this.customersCancelSource.cancel("New customer search");
     this.customersCancelSource = axios.CancelToken.source();
@@ -385,7 +365,6 @@ class Cart extends Component {
     const query = e.target.value;
     this.setState({ customerQuery: query });
     if (query.length >= 2) {
-      // small debounce
       if (this._customerTimer) clearTimeout(this._customerTimer);
       this._customerTimer = setTimeout(() => this.searchCustomers(query), 250);
     } else {
@@ -406,7 +385,6 @@ class Cart extends Component {
     });
   }
 
-  // ------------------- TOTALS -------------------
   handleChangeExtraDiscount(e) {
     const value = parseFloat(e.target.value) || 0;
     this.setState({ extraDiscount: Math.min(Math.max(value, 0), 100) });
@@ -426,10 +404,22 @@ class Cart extends Component {
     return subtotal - discount;
   }
 
-  // ------------------- ORDER SUBMIT -------------------
   handleClickSubmit() {
+    const { cart } = this.state;
     const total = this.getTotal();
-    if (!this.state.cart.length) return;
+    if (!cart.length) return;
+
+    const outOfStock = [];
+    cart.forEach(item => {
+      if (item.pivot.quantity > item.quantity) {
+        outOfStock.push(item.name);
+      }
+    });
+
+    if (outOfStock.length > 0) {
+      Swal.fire("Error", `The following products are out of stock: ${outOfStock.join(', ')}`, "error");
+      return;
+    }
 
     this.setState({ submittingOrder: true });
 
@@ -466,7 +456,6 @@ class Cart extends Component {
     });
   }
 
-  // ------------------- UI HELPERS -------------------
   getCategoryIcon(category) {
     const iconMap = {
       vegetable: "🥕",
@@ -485,7 +474,6 @@ class Cart extends Component {
     this.setState({ layout, showLayoutDropdown: false });
   }
 
-  // ------------------- RENDER -------------------
   render() {
     const {
       cart,
@@ -504,12 +492,9 @@ class Cart extends Component {
       showLayoutDropdown,
       extraDiscount,
       loadingProducts,
-      loadingCart,
+      loadingCategories,
       scanningBarcode,
       submittingOrder,
-      changingQtyIds,
-
-      // customers ui
       customer_id,
       customerQuery,
       customerOptions,
@@ -541,9 +526,7 @@ class Cart extends Component {
         )}
 
         <div className="flex flex-1 flex-col md:flex-row">
-          {/* Main Content */}
           <div className="flex-1 p-4 sm:p-6 min-w-0 max-w-full">
-            {/* Categories Section */}
             <div className="mb-6 sm:mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <button className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm sm:text-base">
@@ -616,7 +599,6 @@ class Cart extends Component {
                 </button>
               </div>
 
-              {/* Subcategories */}
               {selectedCategory &&
                 selectedCategory.subcategories &&
                 selectedCategory.subcategories.length > 0 && (
@@ -643,7 +625,7 @@ class Cart extends Component {
                           {selectedCategory.subcategories.map((subcategory) => (
                             <button
                               key={subcategory.id}
-                              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg whitespace-nowrap transition text-xs sm:text-sm flex-shrink-0 ${
+                              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg whitespace-nowrap transition text-xs sm:text-sm ${
                                 selectedSubcategory &&
                                 selectedSubcategory.id === subcategory.id
                                   ? "bg-green-500 text-white"
@@ -692,7 +674,6 @@ class Cart extends Component {
                 )}
             </div>
 
-            {/* Search Section */}
             <div className="mb-4 sm:mb-6">
               <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
                 Products
@@ -755,7 +736,6 @@ class Cart extends Component {
               </div>
             </div>
 
-            {/* Products Display */}
             {loadingProducts ? (
               <div className="py-10 text-center text-sm text-gray-500">
                 Loading products...
@@ -774,17 +754,16 @@ class Cart extends Component {
                     title="Click to add to cart"
                   >
                     <div className="w-12 sm:w-16 h-12 sm:h-16 bg-gray-100 rounded-full mb-2 sm:mb-3 flex items-center justify-center text-xl sm:text-2xl mx-auto overflow-hidden">
-                                            {product.image_url ? (
-                                                <img
-                                                    src={product.image_url}
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover rounded-full"
-                                                />
-                                            ) : (
-                                                '📦'
-                                            )}
-                                        </div>
-
+                      {product.image_url ? (
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      ) : (
+                        '📦'
+                      )}
+                    </div>
                     <h3
                       className={`font-medium text-xs sm:text-sm mb-1 text-center ${
                         window.APP && window.APP.warning_quantity > product.quantity
@@ -814,7 +793,7 @@ class Cart extends Component {
                     className="bg-white rounded-lg p-3 sm:p-4 shadow-sm border hover:shadow-md transition-shadow cursor-pointer flex items-center justify-between"
                     onClick={() => this.addProductToCart(product.barcode)}
                     title="Click to add to cart"
-                >
+                  >
                     <h3
                       className={`flex-1 font-medium text-xs sm:text-sm ${
                         window.APP && window.APP.warning_quantity > product.quantity
@@ -838,7 +817,6 @@ class Cart extends Component {
               </div>
             )}
 
-            {/* Pagination Controls */}
             <div className="mt-4 sm:mt-6 flex items-center justify-center space-x-2 sm:space-x-4">
               <button
                 className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm ${
@@ -868,7 +846,6 @@ class Cart extends Component {
             </div>
           </div>
 
-          {/* Shopping Cart Sidebar */}
           <div className="w-full md:w-96 bg-white border-t md:border-t-0 md:border-l p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-base sm:text-lg font-semibold">Billing Section</h2>
@@ -879,7 +856,6 @@ class Cart extends Component {
               </div>
             </div>
 
-            {/* Customer Search + Select (AJAX) */}
             <div className="mb-4 sm:mb-6">
               <div className="relative">
                 <input
@@ -918,8 +894,7 @@ class Cart extends Component {
                 )}
               </div>
 
-              {/* Hidden select for compatibility (optional keep) */}
-              <select
+              {/* <select
                 className="w-full mt-2 px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                 onChange={this.setCustomerId}
                 value={customer_id}
@@ -930,9 +905,8 @@ class Cart extends Component {
                     {(c.first_name || "") + " " + (c.last_name || "")}
                   </option>
                 ))}
-              </select>
+              </select> */}
 
-              {/* Barcode Input */}
               <form onSubmit={this.handleScanBarcode} className="mt-4">
                 <input
                   type="text"
@@ -947,67 +921,55 @@ class Cart extends Component {
                 <button
                   className="px-3 py-1.5 sm:py-2 text-gray-500 hover:text-gray-700 text-xs sm:text-sm"
                   onClick={this.handleEmptyCart}
-                  disabled={loadingCart || !cart.length}
+                  disabled={!cart.length}
                 >
                   Clear Cart
                 </button>
               </div>
             </div>
 
-            {/* Cart Items */}
             <div className="space-y-4 mb-4 sm:mb-6">
-              <div className="flex items-center justify-between py-2 text-xs sm:text-sm font-medium text-gray-600">
-                <span>Item</span>
-                <span>Discount %</span>
-                <span>QTY</span>
-                <span>Price</span>
-                <span>Delete</span>
+              <div className="grid grid-cols-5 gap-4 py-2 text-xs sm:text-sm font-medium text-gray-600">
+                <span className="text-left">Item</span>
+                <span className="text-center">Discount %</span>
+                <span className="text-center">QTY</span>
+                <span className="text-right">Price</span>
+                <span className="text-right"></span>
               </div>
-
-              {loadingCart && (
-                <div className="text-xs text-gray-500">Loading cart...</div>
-              )}
 
               {cart.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center space-x-3 py-2 border-b text-xs sm:text-sm"
+                  className="grid grid-cols-5 gap-4 items-center py-2 border-b text-xs sm:text-sm"
                 >
-                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
-                    {item.image_url ? (
-                      <img
-                        src={item.image_url}
-                        alt={item.name}
-                        className="w-full h-full object-cover rounded-full"
-                      />
-                    ) : (
-                      "📦"
-                    )}
-                  </div>
-                  <div className="flex-1">
+                  <div className="text-left">
                     <h4 className="font-medium truncate">{item.name}</h4>
                   </div>
-                  <div className="text-gray-600">{item.discount_percentage || 0}%</div>
-                  <div className="flex items-center space-x-2">
+                  <div className="text-center text-gray-600">{item.discount_percentage || 0}%</div>
+                  <div className="flex items-center justify-center space-x-2">
                     <button
-                      className="w-5 sm:w-6 h-5 sm:h-6 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
+                      className="w-5 sm:w-6 h-5 sm:h-6 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-100"
                       onClick={() =>
                         this.handleChangeQty(
                           item.id,
                           Math.max(1, item.pivot.quantity - 1)
                         )
                       }
-                      disabled={!!changingQtyIds[item.id]}
                     >
                       -
                     </button>
-                    <span>{item.pivot.quantity}</span>
+                    <input
+                      type="number"
+                      value={item.pivot.quantity}
+                      onChange={(e) => this.handleManualQtyChange(item.id, e)}
+                      className="w-12 text-center border border-gray-300 rounded px-1 py-0.5"
+                      min="1"
+                    />
                     <button
-                      className="w-5 sm:w-6 h-5 sm:h-6 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
+                      className="w-5 sm:w-6 h-5 sm:h-6 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-100"
                       onClick={() =>
                         this.handleChangeQty(item.id, item.pivot.quantity + 1)
                       }
-                      disabled={!!changingQtyIds[item.id]}
                     >
                       +
                     </button>
@@ -1022,19 +984,19 @@ class Cart extends Component {
                       ).toFixed(2)}
                     </div>
                   </div>
-                  <button
-                    className="text-red-500 hover:text-red-700 mt-1 disabled:opacity-50"
-                    onClick={() => this.handleClickDelete(item.id)}
-                    disabled={!!changingQtyIds[item.id]}
-                    title="Remove item"
-                  >
-                    🗑️
-                  </button>
+                  <div className="text-right">
+                    <button
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => this.handleClickDelete(item.id)}
+                      title="Remove item"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Bill Summary */}
             <div className="space-y-2 mb-4 sm:mb-6 text-xs sm:text-sm">
               <div className="flex justify-between">
                 <span>Sub total:</span>
@@ -1066,12 +1028,11 @@ class Cart extends Component {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="space-y-3">
               <button
                 className="w-full px-4 py-2 sm:py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:bg-gray-400 text-xs sm:text-sm"
                 onClick={this.handleEmptyCart}
-                disabled={!cart.length || loadingCart}
+                disabled={!cart.length}
               >
                 Cancel Order
               </button>
